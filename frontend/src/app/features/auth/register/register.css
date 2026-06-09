@@ -1,0 +1,123 @@
+:host {
+  display: block;
+}
+
+/* Card entrance */
+.auth-card {
+  animation: card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Cinema gradient brand panel */
+.hero {
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(255, 111, 89, 0.45) 0%, transparent 55%),
+    linear-gradient(150deg, #2a0e1a 0%, #1a1422 55%, #120d1c 100%);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 85% 15%, rgba(255, 77, 77, 0.35), transparent 35%),
+    radial-gradient(circle at 70% 90%, rgba(255, 111, 89, 0.25), transparent 40%);
+  pointer-events: none;
+}
+
+.hero-feature {
+  animation: feature-in 0.4s ease both;
+}
+
+.form-panel {
+  animation: panel-in 0.5s ease both 0.1s;
+}
+
+/* ===== Animated segmented role toggle ===== */
+.role-toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 1.5rem;
+  padding: 0.25rem;
+  border: 1px solid theme("colors.ink.600");
+  border-radius: 0.75rem;
+  background: theme("colors.ink.800");
+}
+
+.role-thumb {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc(50% - 0.25rem);
+  border-radius: 0.55rem;
+  background: theme("colors.tomato.500");
+  box-shadow: 0 6px 16px rgba(255, 77, 77, 0.35);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.role-toggle.is-admin .role-thumb {
+  transform: translateX(100%);
+}
+
+.role-option {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: theme("colors.gray.500");
+  transition: color 0.2s ease;
+}
+.role-option:hover {
+  color: theme("colors.gray.800");
+}
+/* Active option text (left = user, right = admin) turns white over the thumb */
+.role-toggle:not(.is-admin) .role-option:first-child,
+.role-toggle.is-admin .role-option:last-child {
+  color: #fff;
+}
+
+/* Theater fields reveal */
+.reveal {
+  animation: reveal 0.35s ease both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+@keyframes feature-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card,
+  .form-panel,
+  .hero-feature,
+  .reveal,
+  .role-thumb {
+    animation: none;
+    transition: none;
+  }
+}

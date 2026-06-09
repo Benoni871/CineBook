@@ -1,15 +1,45 @@
 import { Component, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
-import { AuthService } from "../../core/services/auth.service";
-import { IconComponent } from "../../shared/icon";
+import {
+  LucideArmchair,
+  LucideBuilding,
+  LucideClapperboard,
+  LucideEye,
+  LucideEyeOff,
+  LucideFilm,
+  LucideLoader,
+  LucideLock,
+  LucideMapPin,
+  LucidePopcorn,
+  LucideSparkles,
+  LucideStar,
+  LucideUser
+} from "@lucide/angular";
+import { AuthService } from "../../../core/services/auth.service";
 
 type Mode = "user" | "admin";
 
 @Component({
   selector: "app-register",
   standalone: true,
-  imports: [FormsModule, RouterLink, IconComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    LucideArmchair,
+    LucideBuilding,
+    LucideClapperboard,
+    LucideEye,
+    LucideEyeOff,
+    LucideFilm,
+    LucideLoader,
+    LucideLock,
+    LucideMapPin,
+    LucidePopcorn,
+    LucideSparkles,
+    LucideStar,
+    LucideUser
+  ],
   templateUrl: "./register.html",
   styleUrl: "./register.css"
 })
@@ -24,6 +54,16 @@ export class RegisterComponent {
   theaterLocation = "";
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly showPassword = signal(false);
+
+  setMode(mode: Mode): void {
+    this.mode.set(mode);
+    this.error.set(null);
+  }
+
+  togglePassword(): void {
+    this.showPassword.update((v) => !v);
+  }
 
   submit(): void {
     if (!this.username || !this.password) {

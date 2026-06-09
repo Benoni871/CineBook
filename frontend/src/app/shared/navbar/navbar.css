@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+/* Segmented sign-in / sign-up switcher with a sliding thumb */
+.auth-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.25rem;
+  border: 1px solid theme("colors.ink.700");
+  border-radius: 9999px;
+  background: theme("colors.ink.800");
+}
+
+/* The moving highlight pill */
+.auth-switch-thumb {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc(50% - 0.25rem);
+  border-radius: 9999px;
+  background: theme("colors.tomato.500");
+  box-shadow: 0 4px 12px rgba(255, 77, 77, 0.35);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.auth-switch.is-register .auth-switch-thumb {
+  transform: translateX(100%);
+}
+
+.auth-switch-link {
+  position: relative;
+  z-index: 1;
+  padding: 0.4rem 1rem;
+  text-align: center;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: theme("colors.gray.500");
+  transition: color 0.25s ease;
+}
+.auth-switch-link:hover {
+  color: theme("colors.gray.900");
+}
+
+/* The link sitting over the thumb gets white text */
+.auth-switch:not(.is-register) .auth-switch-link:first-of-type,
+.auth-switch.is-register .auth-switch-link:last-of-type {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-switch-thumb {
+    transition: none;
+  }
+}

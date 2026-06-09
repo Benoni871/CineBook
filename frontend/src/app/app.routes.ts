@@ -5,12 +5,12 @@ export const routes: Routes = [
   {
     path: "login",
     loadComponent: () =>
-      import("./features/auth/login").then((m) => m.LoginComponent)
+      import("./features/auth/login/login").then((m) => m.LoginComponent)
   },
   {
     path: "register",
     loadComponent: () =>
-      import("./features/auth/register").then((m) => m.RegisterComponent)
+      import("./features/auth/register/register").then((m) => m.RegisterComponent)
   },
   {
     path: "",
