@@ -136,11 +136,6 @@ sequenceDiagram
 (`user.theaterId`). The response carries the token, so a freshly registered user is **immediately
 logged in** — no second round-trip.
 
-### 3.4 Login flow
-
-`POST /api/auth/login`.
-
-```mermaid
 sequenceDiagram
     participant UI as Angular (login.ts)
     participant AS as auth.service.ts
@@ -156,18 +151,20 @@ sequenceDiagram
     SVC->>DB: findByUsername(username)
     DB-->>SVC: User (with stored hash)
     SVC->>ENC: matches(rawPassword, storedHash)
+    
     alt password correct
         ENC-->>SVC: true
         SVC->>JWT: generateToken(user)
+        JWT-->>SVC: Token
         SVC-->>C: AuthResponse{… , token}
         C-->>AS: 200 OK
         AS->>AS: store user+token in localStorage; set currentUser signal
     else password wrong / user missing
+        ENC-->>SVC: false (or DB returns empty)
         SVC-->>C: throw ApiException.unauthorized(...)
         C-->>AS: 401 Unauthorized
         AS-->>UI: show "Invalid username or password"
     end
-```
 
 Crucially, the server never compares plaintext — `passwordEncoder.matches()` re-hashes the
 submitted password and compares hashes. (This is why the legacy plaintext accounts can no longer
