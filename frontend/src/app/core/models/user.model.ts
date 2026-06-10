@@ -5,6 +5,7 @@ export interface AuthUser {
   username: string;
   role: Role;
   theaterId: number | null;
+  token: string;
 }
 
 export interface RegisterRequest {

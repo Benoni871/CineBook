@@ -8,15 +8,17 @@ public class AuthResponse {
     private String username;
     private Role role;
     private Long theaterId;
+    private String token;
 
     public AuthResponse() {
     }
 
-    public AuthResponse(Long id, String username, Role role, Long theaterId) {
+    public AuthResponse(Long id, String username, Role role, Long theaterId, String token) {
         this.id = id;
         this.username = username;
         this.role = role;
         this.theaterId = theaterId;
+        this.token = token;
     }
 
     public Long getId() { return id; }
@@ -30,4 +32,7 @@ public class AuthResponse {
 
     public Long getTheaterId() { return theaterId; }
     public void setTheaterId(Long theaterId) { this.theaterId = theaterId; }
+
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 }

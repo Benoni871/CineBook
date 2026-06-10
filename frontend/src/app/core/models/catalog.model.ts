@@ -30,13 +30,15 @@ export interface Show {
   availableSeats: number;
 }
 
-export type BookingStatus = "CONFIRMED" | "CANCELLED";
+export type BookingStatus = "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED";
+
+export type SeatStatus = "BOOKED" | "CANCELLED";
 
 export interface Booking {
   id: number;
   showId: number;
   userId: number;
-  seats: string;
+  seats: string; // immutable snapshot of originally booked seats (CSV)
   seatsBooked: number;
   subtotal: number;
   taxAmount: number;
@@ -44,5 +46,15 @@ export interface Booking {
   refundAmount: number;
   status: BookingStatus;
   bookingDate: string;
+  cancelledAt: string | null;
+}
+
+/** One booked seat within a booking — authoritative per-seat state for partial cancellation. */
+export interface BookingSeat {
+  id: number;
+  bookingId: number;
+  seatLabel: string;
+  price: number;
+  status: SeatStatus;
   cancelledAt: string | null;
 }

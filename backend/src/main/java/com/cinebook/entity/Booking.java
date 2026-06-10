@@ -18,7 +18,8 @@ public class Booking {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    // CSV of seat ids, e.g. "A1,A2,B5"
+    // Immutable snapshot of the originally booked seats, CSV e.g. "A1,A2,B5".
+    // Current per-seat state lives in BookingSeat rows (authoritative for cancellations).
     @Column(length = 500)
     private String seats;
 

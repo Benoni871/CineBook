@@ -21,6 +21,9 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
   readonly isAdmin = computed(() => this.currentUser()?.role === "ADMIN");
 
+  /** Current JWT, or null when signed out. Used by the auth interceptor. */
+  readonly token = computed(() => this.currentUser()?.token ?? null);
+
   constructor(private http: HttpClient) {}
 
   register(body: RegisterRequest): Observable<AuthUser> {

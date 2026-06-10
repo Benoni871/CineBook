@@ -10,6 +10,8 @@ import com.cinebook.entity.User;
 import com.cinebook.exception.ApiException;
 import com.cinebook.repository.TheaterRepository;
 import com.cinebook.repository.UserRepository;
+import com.cinebook.security.JwtService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +20,15 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final TheaterRepository theaterRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, TheaterRepository theaterRepository) {
+    public AuthService(UserRepository userRepository, TheaterRepository theaterRepository,
+                       PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.theaterRepository = theaterRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     /** Register a regular moviegoer (ROLE USER). */
@@ -31,7 +38,7 @@ public class AuthService {
 
         User user = new User();
         user.setUsername(request.getUsername().trim());
-        user.setPassword(request.getPassword()); // plaintext per project decision
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.USER);
         user = userRepository.save(user);
 
@@ -45,7 +52,7 @@ public class AuthService {
 
         User admin = new User();
         admin.setUsername(request.getUsername().trim());
-        admin.setPassword(request.getPassword());
+        admin.setPassword(passwordEncoder.encode(request.getPassword()));
         admin.setRole(Role.ADMIN);
         admin = userRepository.save(admin);
 
@@ -66,7 +73,7 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername().trim())
                 .orElseThrow(() -> ApiException.unauthorized("Invalid username or password"));
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw ApiException.unauthorized("Invalid username or password");
         }
 
@@ -83,6 +90,8 @@ public class AuthService {
     }
 
     private AuthResponse toResponse(User user) {
-        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(), user.getTheaterId());
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(user.getId(), user.getUsername(), user.getRole(),
+                user.getTheaterId(), token);
     }
 }
