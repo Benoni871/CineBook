@@ -12,6 +12,9 @@ export interface Movie {
   deleted?: boolean;
 }
 
+/** Create/update payload — the backend assigns `id` and owns the soft-delete flag. */
+export type MoviePayload = Omit<Movie, "id" | "deleted">;
+
 export interface Theater {
   id: number;
   name: string;

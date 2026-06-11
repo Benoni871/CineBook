@@ -1,0 +1,493 @@
+<div class="mx-auto max-w-7xl px-4 py-8">
+  <!-- Feature 1 — Dashboard header -->
+  <header id="mm-header" class="mb-6 flex items-end justify-between gap-4">
+    <div>
+      <h1 class="flex items-center gap-2 text-2xl font-extrabold sm:text-3xl">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-tomato-500 text-white">
+          <svg lucideClapperboard class="h-6 w-6"></svg>
+        </span>
+        Manage Movies
+      </h1>
+      <p id="mm-subtitle" class="mt-1 text-gray-500">Add new titles and review the catalog.</p>
+    </div>
+    <div id="mm-counter" class="card flex items-center gap-3 px-4 py-3">
+      <span id="mm-counter-value" class="text-3xl font-extrabold text-tomato-500">{{ count() }}</span>
+      <span class="text-sm leading-tight text-gray-500">Total<br />movies</span>
+    </div>
+  </header>
+
+  <!-- Feature 2 — Top carousel (last 3 added movies) -->
+  @if (latestThree().length) {
+    <section id="mm-carousel" class="card relative mb-8 overflow-hidden">
+      <div
+        id="mm-carousel-track"
+        class="carousel-track"
+        [style.transform]="'translateX(-' + safeIndex() * 100 + '%)'"
+      >
+        @for (movie of latestThree(); track movie.id) {
+          <div [id]="'mm-carousel-slide-' + movie.id" class="carousel-slide">
+            <img [src]="movie.posterUrl" alt="" aria-hidden="true" class="carousel-bg" />
+            <div class="carousel-overlay"></div>
+            <div class="carousel-inner">
+              <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-poster" />
+              <div class="carousel-details">
+                <span class="text-xs font-semibold uppercase tracking-wider text-tomato-400">
+                  Now in catalog
+                </span>
+                <h3 class="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+                  {{ movie.title }}
+                </h3>
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  @for (g of toChips(movie.genre); track g) {
+                    <span class="chip chip-on-dark">{{ g }}</span>
+                  }
+                </div>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-white/85">
+                  <svg lucideClock class="h-4 w-4"></svg> {{ movie.durationMins }} min
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (latestThree().length > 1) {
+        <button
+          id="mm-carousel-prev"
+          type="button"
+          class="carousel-arrow left-3"
+          (click)="prev()"
+          aria-label="Previous movie"
+        >
+          <svg lucideChevronLeft class="h-5 w-5"></svg>
+        </button>
+        <button
+          id="mm-carousel-next"
+          type="button"
+          class="carousel-arrow right-3"
+          (click)="next()"
+          aria-label="Next movie"
+        >
+          <svg lucideChevronRight class="h-5 w-5"></svg>
+        </button>
+        <div id="mm-carousel-dots" class="carousel-dots">
+          @for (movie of latestThree(); track movie.id; let i = $index) {
+            <button
+              [id]="'mm-carousel-dot-' + i"
+              type="button"
+              class="carousel-dot"
+              [class.is-active]="i === safeIndex()"
+              (click)="goToSlide(i)"
+              [attr.aria-label]="'Go to slide ' + (i + 1)"
+            ></button>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Feature 3 — Two-column form grid + live preview -->
+  <div class="grid gap-6 lg:grid-cols-2">
+    <!-- Left: add / edit form -->
+    <section class="card p-6">
+      <h2 id="mm-form-heading" class="text-lg font-bold">
+        {{ editingId() ? "Edit movie" : "Add a Movie" }}
+      </h2>
+      <p class="mb-5 mt-1 text-sm text-gray-500">
+        @if (editingId()) {
+          Update the title, genre, runtime, or replace the poster.
+        } @else {
+          Once added, it will appear in the user catalog instantly.
+        }
+      </p>
+
+      <form id="mm-form" #movieForm="ngForm" (ngSubmit)="submit(movieForm)" class="space-y-4" novalidate>
+        <!-- Title -->
+        <div>
+          <label for="mm-input-title" class="mb-1.5 block text-sm font-medium text-gray-700">Title</label>
+          <input
+            id="mm-input-title"
+            name="title"
+            class="input"
+            [(ngModel)]="form.title"
+            #title="ngModel"
+            required
+            maxlength="150"
+            placeholder="e.g. Baahubali: The Beginning"
+          />
+          @if ((submitted() || title.touched) && title.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">Title is required.</p>
+          }
+        </div>
+
+        <!-- Genre (CSV → chips) -->
+        <div>
+          <label for="mm-input-genre" class="mb-1.5 block text-sm font-medium text-gray-700">
+            Genre <span class="font-normal text-gray-400">(comma-separated)</span>
+          </label>
+          <input
+            id="mm-input-genre"
+            name="genre"
+            class="input"
+            [(ngModel)]="form.genre"
+            #genre="ngModel"
+            required
+            maxlength="50"
+            placeholder="e.g. Action, Drama"
+          />
+          @if (toChips(form.genre).length) {
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              @for (g of toChips(form.genre); track g) {
+                <span class="chip">{{ g }}</span>
+              }
+            </div>
+          }
+          @if ((submitted() || genre.touched) && genre.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">Genre is required.</p>
+          }
+        </div>
+
+        <!-- Duration -->
+        <div>
+          <label for="mm-input-duration" class="mb-1.5 block text-sm font-medium text-gray-700">
+            Duration (mins)
+          </label>
+          <input
+            id="mm-input-duration"
+            name="durationMins"
+            type="number"
+            min="1"
+            class="input"
+            [(ngModel)]="form.durationMins"
+            #duration="ngModel"
+            required
+            placeholder="e.g. 159"
+          />
+          @if ((submitted() || duration.touched) && duration.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">
+              @if (duration.errors?.["required"]) {
+                Duration is required.
+              } @else {
+                Duration must be at least 1 minute.
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Languages — hybrid preset chips + manual CSV -->
+        <div>
+          <label for="mm-input-languages" class="mb-1.5 block text-sm font-medium text-gray-700">
+            <span class="inline-flex items-center gap-1.5">
+              <svg lucideLanguages class="h-4 w-4 text-gray-400"></svg> Languages
+            </span>
+          </label>
+          <div id="mm-lang-chips" class="mb-2 flex flex-wrap gap-2">
+            @for (lang of presetLanguages; track lang) {
+              <button
+                [id]="'mm-lang-chip-' + lang.toLowerCase()"
+                type="button"
+                class="lang-chip"
+                [class.is-selected]="isLanguageSelected(lang)"
+                (click)="toggleLanguage(lang)"
+              >
+                {{ lang }}
+              </button>
+            }
+          </div>
+          <input
+            id="mm-input-languages"
+            name="languages"
+            class="input"
+            [(ngModel)]="form.languages"
+            #languages="ngModel"
+            required
+            maxlength="250"
+            placeholder="Telugu, Hindi, English"
+          />
+          <p class="mt-1 text-xs text-gray-400">
+            Tap a chip above or type your own list — separated by commas.
+          </p>
+          @if ((submitted() || languages.touched) && languages.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">Pick or type at least one language.</p>
+          }
+        </div>
+
+        <!-- Poster URL -->
+        <div>
+          <label for="mm-input-poster" class="mb-1.5 block text-sm font-medium text-gray-700">Poster URL</label>
+          <input
+            id="mm-input-poster"
+            name="posterUrl"
+            type="url"
+            class="input"
+            [(ngModel)]="form.posterUrl"
+            #poster="ngModel"
+            required
+            maxlength="500"
+            pattern="https?://.+"
+            placeholder="https://…/poster.jpg"
+          />
+          <p class="mt-1 text-xs text-gray-400">Portrait image (2:3) looks best.</p>
+          @if ((submitted() || poster.touched) && poster.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">
+              @if (poster.errors?.["required"]) {
+                Poster URL is required.
+              } @else {
+                Enter a valid http(s) URL.
+              }
+            </p>
+          }
+        </div>
+
+        <!-- YouTube trailer URL -->
+        <div>
+          <label for="mm-input-trailer" class="mb-1.5 block text-sm font-medium text-gray-700">
+            YouTube Trailer
+          </label>
+          <input
+            id="mm-input-trailer"
+            name="trailerUrl"
+            type="url"
+            class="input"
+            [(ngModel)]="form.trailerUrl"
+            #trailer="ngModel"
+            required
+            maxlength="500"
+            pattern="https?://.+"
+            placeholder="https://youtube.com/watch?v=…"
+          />
+          @if ((submitted() || trailer.touched) && trailer.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">
+              @if (trailer.errors?.["required"]) {
+                Trailer URL is required.
+              } @else {
+                Enter a valid http(s) URL.
+              }
+            </p>
+          } @else {
+            @if (embedUrl(form.trailerUrl); as src) {
+              <div class="mt-2 aspect-video overflow-hidden rounded-lg border border-ink-700">
+                <iframe
+                  [src]="src"
+                  class="h-full w-full"
+                  title="Trailer preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
+              </div>
+            } @else if (isInvalidTrailer(form.trailerUrl)) {
+              <p class="mt-1 text-xs text-tomato-600">URL doesn't look like a YouTube link.</p>
+            }
+          }
+        </div>
+
+        <!-- Price -->
+        <div>
+          <label for="mm-input-price" class="mb-1.5 block text-sm font-medium text-gray-700">
+            Default Ticket Price (₹)
+          </label>
+          <input
+            id="mm-input-price"
+            name="price"
+            type="number"
+            min="0"
+            step="0.01"
+            class="input"
+            [(ngModel)]="form.price"
+            #price="ngModel"
+            required
+            placeholder="e.g. 250"
+          />
+          <p class="mt-1 text-xs text-gray-400">Suggested price; can be overridden per show.</p>
+          @if ((submitted() || price.touched) && price.invalid) {
+            <p class="mt-1 text-xs text-tomato-600">
+              @if (price.errors?.["required"]) {
+                Price is required.
+              } @else {
+                Price cannot be negative.
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-3 pt-2">
+          <button id="mm-submit" type="submit" class="btn-primary" [disabled]="submitting()">
+            @if (submitting()) {
+              <svg lucideLoader class="h-4 w-4 animate-spin"></svg> Saving…
+            } @else if (editingId()) {
+              <svg lucidePencil class="h-4 w-4"></svg> Save changes
+            } @else {
+              <svg lucidePlus class="h-4 w-4"></svg> Add Movie
+            }
+          </button>
+          @if (editingId()) {
+            <button id="mm-cancel" type="button" class="btn-ghost" (click)="cancelEdit()">Cancel</button>
+          } @else {
+            <button id="mm-reset" type="button" class="btn-ghost" (click)="cancelEdit()">Reset</button>
+          }
+        </div>
+
+        @if (error()) {
+          <p id="mm-form-error" class="text-sm text-tomato-600">{{ error() }}</p>
+        }
+      </form>
+    </section>
+
+    <!-- Right: live preview -->
+    <section class="card p-6">
+      <h2 class="mb-5 text-lg font-bold">Live preview</h2>
+      <div id="mm-preview" class="overflow-hidden rounded-xl border border-ink-700">
+        <div class="flex justify-center p-4">
+          @if (form.posterUrl) {
+            <img
+              id="mm-preview-poster"
+              [src]="form.posterUrl"
+              [alt]="form.title || 'Movie poster'"
+              class="h-72 w-auto rounded-lg object-cover"
+            />
+          } @else {
+            <div
+              id="mm-preview-poster"
+              class="flex h-72 w-48 flex-col items-center justify-center gap-2 rounded-lg bg-ink-800 text-gray-400"
+            >
+              <svg lucideImageOff class="h-8 w-8"></svg>
+              <span class="text-sm">No poster yet</span>
+            </div>
+          }
+        </div>
+        <div class="p-4">
+          <h3 id="mm-preview-title" class="text-lg font-bold">
+            {{ form.title || "Untitled movie" }}
+          </h3>
+          <div id="mm-preview-meta" class="mt-1 flex items-center gap-3 text-sm text-gray-500">
+            <span class="inline-flex items-center gap-1">
+              <svg lucideClock class="h-4 w-4"></svg> {{ form.durationMins || 0 }} min
+            </span>
+          </div>
+          @if (toChips(form.genre).length) {
+            <div id="mm-preview-genres" class="mt-3 flex flex-wrap gap-1.5">
+              @for (g of toChips(form.genre); track g) {
+                <span class="chip">{{ g }}</span>
+              }
+            </div>
+          }
+          @if (embedUrl(form.trailerUrl); as src) {
+            <div id="mm-preview-trailer" class="mt-3">
+              <p class="mb-1.5 text-xs font-medium text-gray-500">Trailer attached</p>
+              <div class="aspect-video overflow-hidden rounded-lg border border-ink-700">
+                <iframe
+                  [src]="src"
+                  class="h-full w-full"
+                  title="Trailer preview"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Feature 4 — Existing movies ledger -->
+  <section class="card mt-8 overflow-hidden">
+    <div class="flex items-center justify-between border-b border-ink-700 px-5 py-4">
+      <h2 class="font-bold">Existing movies</h2>
+      <span id="mm-table-count" class="rounded-full bg-ink-800 px-2.5 py-0.5 text-sm font-semibold text-gray-600">
+        {{ count() }} total
+      </span>
+    </div>
+
+    @if (movies().length) {
+      <div class="overflow-x-auto">
+        <table id="mm-table" class="w-full text-left text-sm">
+          <thead class="border-b border-ink-700 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th class="px-5 py-3">ID</th>
+              <th class="px-5 py-3">Poster</th>
+              <th class="px-5 py-3">Title</th>
+              <th class="px-5 py-3">Genre</th>
+              <th class="px-5 py-3">Duration</th>
+              <th class="px-5 py-3">Price</th>
+              <th class="px-5 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (movie of movies(); track movie.id) {
+              <tr [id]="'mm-row-' + movie.id" class="border-b border-ink-700 last:border-0 hover:bg-ink-800/60">
+                <td class="px-5 py-3 text-gray-500">#{{ movie.id }}</td>
+                <td class="px-5 py-3">
+                  <img [src]="movie.posterUrl" [alt]="movie.title" class="h-14 w-10 rounded object-cover" />
+                </td>
+                <td class="px-5 py-3 font-medium text-gray-900">{{ movie.title }}</td>
+                <td class="px-5 py-3">
+                  <div class="flex flex-wrap gap-1">
+                    @for (g of toChips(movie.genre); track g) {
+                      <span class="chip">{{ g }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="px-5 py-3 whitespace-nowrap text-gray-600">{{ movie.durationMins }} min</td>
+                <td class="px-5 py-3 whitespace-nowrap text-gray-600">
+                  {{ movie.price | currency: "INR" }}
+                </td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      [id]="'mm-edit-' + movie.id"
+                      type="button"
+                      class="btn-ghost px-3 py-1.5 text-sm"
+                      (click)="editMovie(movie)"
+                    >
+                      <svg lucidePencil class="h-3.5 w-3.5"></svg> Edit
+                    </button>
+                    <button
+                      [id]="'mm-delete-' + movie.id"
+                      type="button"
+                      class="btn-ghost px-3 py-1.5 text-sm text-tomato-600 hover:bg-tomato-500/10"
+                      (click)="askDelete(movie)"
+                    >
+                      <svg lucideTrash2 class="h-3.5 w-3.5"></svg> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div id="mm-table-empty" class="px-5 py-12 text-center text-gray-500">
+        <svg lucideFilm class="mx-auto mb-2 h-8 w-8 text-gray-300"></svg>
+        No movies yet. Add your first title using the form on the left.
+      </div>
+    }
+  </section>
+
+  <!-- Archival delete confirmation -->
+  @if (deleteTarget(); as target) {
+    <div
+      id="mm-delete-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      (click)="cancelDelete()"
+    >
+      <div class="card w-full max-w-md p-6" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-bold">Delete "{{ target.title }}"?</h3>
+        <p class="mt-2 text-sm text-gray-600">
+          The movie and its shows will be archived (hidden from the catalog). Past bookings and
+          ticket history are preserved.
+        </p>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <button id="mm-delete-cancel" type="button" class="btn-ghost" (click)="cancelDelete()">
+            Cancel
+          </button>
+          <button id="mm-delete-confirm" type="button" class="btn-primary" (click)="confirmDelete()">
+            <svg lucideTrash2 class="h-4 w-4"></svg> Yes, delete movie
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

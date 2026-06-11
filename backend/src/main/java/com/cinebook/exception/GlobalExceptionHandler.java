@@ -2,6 +2,7 @@ package com.cinebook.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
                 .map(this::formatFieldError)
                 .collect(Collectors.joining("; "));
         return build(HttpStatus.BAD_REQUEST, message.isBlank() ? "Validation failed" : message);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        // @PreAuthorize denials (e.g. a non-ADMIN attempting a movie write) — must be 403,
+        // not swallowed by the generic 500 handler below.
+        return build(HttpStatus.FORBIDDEN, "You do not have permission to perform this action");
     }
 
     @ExceptionHandler(Exception.class)

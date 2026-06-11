@@ -1,0 +1,5 @@
+:host {
+  /* Establish a block containing block that spans the full document height so the
+     sticky navbar (and sidebar) anchor correctly instead of scrolling away. */
+  display: block;
+}

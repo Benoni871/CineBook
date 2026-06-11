@@ -1,6 +1,6 @@
 import { Component, inject } from "@angular/core";
 import { LucideFilm, LucideTicket, LucideUser } from "@lucide/angular";
-import { AuthService } from "../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth.service";
 
 @Component({
   selector: "app-home",

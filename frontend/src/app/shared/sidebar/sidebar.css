@@ -1,0 +1,20 @@
+/* Dark navigation rail. Hidden below lg; pins under the h-16 navbar on desktop. */
+.sidebar {
+  @apply hidden w-64 shrink-0 flex-col gap-1 border-r border-slate-800 bg-slate-900 p-4 lg:flex;
+  position: sticky;
+  top: 4rem; /* sits just below the sticky h-16 (4rem) navbar */
+  align-self: flex-start; /* opt out of flex stretch so sticky works */
+  min-height: calc(100vh - 4rem);
+}
+
+.sidebar-heading {
+  @apply mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500;
+}
+
+.sidebar-link {
+  @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white;
+}
+
+.sidebar-link.is-active {
+  @apply bg-tomato-500 text-white shadow-sm;
+}
