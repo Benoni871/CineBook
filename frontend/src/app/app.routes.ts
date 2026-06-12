@@ -23,6 +23,12 @@ export const routes: Routes = [
       import("./features/admin/manage-movies/manage-movies").then((m) => m.ManageMoviesComponent)
   },
   {
+    path: "manage-shows",
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import("./features/admin/manage-shows/manage-shows").then((m) => m.ManageShowsComponent)
+  },
+  {
     path: "",
     canActivate: [authGuard],
     loadComponent: () => import("./features/user/home/home").then((m) => m.HomeComponent)
