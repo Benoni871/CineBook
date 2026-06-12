@@ -212,7 +212,8 @@
           />
           @if (submitted() && (form.totalSeats == null || form.totalSeats < 1)) {
             <p class="mt-1 text-xs text-tomato-600">Total seats must be at least 1.</p>
-          } @else if (form.totalSeats != null && form.totalSeats > maxSeats) {
+          }
+          @else if (form.totalSeats != null && form.totalSeats > maxSeats) {
             <p class="mt-1 text-xs text-tomato-600">A show can hold at most {{ maxSeats }} seats.</p>
           }
         </div>
@@ -278,7 +279,17 @@
   <section class="card mt-8 overflow-hidden">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-700 px-5 py-4">
       <div class="flex items-center gap-3">
-        <h2 class="font-bold">Upcoming shows</h2>
+        <h2 class="font-bold">
+          
+          {{
+              filter() === 'upcoming'
+                ? 'Upcoming Shows'
+                : filter() === 'closed'
+                ? 'Closed Shows'
+                : 'All Shows'
+            }}
+
+        </h2>
         <span id="ms-table-count" class="rounded-full bg-ink-800 px-2.5 py-0.5 text-sm font-semibold text-gray-600">
           {{ filteredShows().length }} total
         </span>
