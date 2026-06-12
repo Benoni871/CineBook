@@ -204,13 +204,17 @@
             name="totalSeats"
             type="number"
             min="1"
+            [max]="maxSeats"
             class="input"
             [(ngModel)]="form.totalSeats"
             required
-            placeholder="e.g. 120"
+            [placeholder]="'e.g. 120 (max ' + maxSeats + ')'"
           />
           @if (submitted() && (form.totalSeats == null || form.totalSeats < 1)) {
             <p class="mt-1 text-xs text-tomato-600">Total seats must be at least 1.</p>
+          }
+          @else if (form.totalSeats != null && form.totalSeats > maxSeats) {
+            <p class="mt-1 text-xs text-tomato-600">A show can hold at most {{ maxSeats }} seats.</p>
           }
         </div>
       </div>
