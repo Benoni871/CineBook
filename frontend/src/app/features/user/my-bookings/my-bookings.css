@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+/* Star buttons inside the Rate modal — neutral by default, gold when picked. */
+.rate-star {
+  @apply grid h-12 w-12 place-items-center rounded-lg border border-ink-600 bg-white text-gray-400 transition-colors hover:bg-ink-800 hover:text-amber-500;
+}
+.rate-star.is-picked {
+  @apply border-amber-400 bg-amber-50 text-amber-500;
+}

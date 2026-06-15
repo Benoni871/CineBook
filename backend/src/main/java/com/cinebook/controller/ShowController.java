@@ -1,5 +1,6 @@
 package com.cinebook.controller;
 
+import com.cinebook.dto.PublicShowResponse;
 import com.cinebook.dto.ShowRequest;
 import com.cinebook.entity.Show;
 import com.cinebook.security.AuthPrincipal;
@@ -32,6 +33,16 @@ public class ShowController {
     @GetMapping
     public ResponseEntity<List<Show>> list(@AuthenticationPrincipal AuthPrincipal principal) {
         return ResponseEntity.ok(showService.listShows(principal.theaterId()));
+    }
+
+    /**
+     * Public shows-by-movie listing for the user booking page. Returns upcoming
+     * shows only, enriched with theater name/location. Disambiguated from the
+     * admin {@link #list} above by the required {@code movieId} query parameter.
+     */
+    @GetMapping(params = "movieId")
+    public ResponseEntity<List<PublicShowResponse>> listByMovie(@RequestParam Long movieId) {
+        return ResponseEntity.ok(showService.listUpcomingForMovie(movieId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

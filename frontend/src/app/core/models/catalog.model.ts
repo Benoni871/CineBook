@@ -33,6 +33,12 @@ export interface Show {
   availableSeats: number;
 }
 
+/** Theater-enriched show served to user-facing pages — see PublicShowResponse on the backend. */
+export interface PublicShow extends Show {
+  theaterName: string | null;
+  theaterLocation: string | null;
+}
+
 /**
  * Create/update payload for a show. The backend assigns `id`, derives `theaterId`
  * from the admin's JWT, and computes `availableSeats`, so none of those are sent.
@@ -122,4 +128,57 @@ export interface MovieInterestStat {
   title: string;
   posterUrl: string | null;
   waitlistCount: number;
+}
+
+/** Flat, pre-joined row served to /api/bookings/me and the My Bookings page. */
+export interface UserBooking {
+  id: number;
+  movieId: number | null;
+  movieTitle: string;
+  moviePosterUrl: string | null;
+  showId: number;
+  showTime: string | null;
+  theaterName: string | null;
+  theaterLocation: string | null;
+  seats: string;
+  seatsBooked: number;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  refundAmount: number;
+  status: BookingStatus;
+  bookingDate: string;
+  cancelledAt: string | null;
+  hasReview: boolean;
+}
+
+export interface BookingCreatePayload {
+  showId: number;
+  seatLabels: string[];
+}
+
+export interface SeatAvailability {
+  showId: number;
+  totalSeats: number;
+  booked: string[];
+}
+
+export interface Review {
+  id: number;
+  movieId: number;
+  userId: number;
+  username: string;
+  rating: number;
+  createdAt: string;
+}
+
+export interface ReviewCreatePayload {
+  bookingId: number;
+  rating: number;
+}
+
+export interface MovieInterestStatus {
+  movieId: number;
+  interested: boolean;
+  count: number;
 }
