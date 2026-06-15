@@ -1,6 +1,6 @@
 import { Component, computed, inject } from "@angular/core";
 import { RouterLink, RouterLinkActive } from "@angular/router";
-import { LucideClapperboard } from "@lucide/angular";
+import { LucideCalendarClock, LucideClapperboard, LucideTicket } from "@lucide/angular";
 import { Role } from "../../core/models/user.model";
 import { AuthService } from "../../core/services/auth.service";
 
@@ -9,7 +9,7 @@ interface NavItem {
   id: string;
   label: string;
   route: string;
-  icon: "clapperboard";
+  icon: "clapperboard" | "calendar-clock" | "ticket";
   roles: Role[];
 }
 
@@ -19,6 +19,20 @@ const NAV_ITEMS: NavItem[] = [
     label: "Manage Movies",
     route: "/manage-movies",
     icon: "clapperboard",
+    roles: ["ADMIN"]
+  },
+  {
+    id: "sidebar-shows",
+    label: "Manage Shows",
+    route: "/manage-shows",
+    icon: "calendar-clock",
+    roles: ["ADMIN"]
+  },
+  {
+    id: "sidebar-bookings",
+    label: "All Bookings",
+    route: "/manage-bookings",
+    icon: "ticket",
     roles: ["ADMIN"]
   }
 ];
@@ -32,7 +46,7 @@ const NAV_ITEMS: NavItem[] = [
 @Component({
   selector: "app-sidebar",
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, LucideClapperboard],
+  imports: [RouterLink, RouterLinkActive, LucideClapperboard, LucideCalendarClock, LucideTicket],
   templateUrl: "./sidebar.html",
   styleUrl: "./sidebar.css",
   host: { "[class.hidden]": "!items().length" }
