@@ -29,6 +29,11 @@ export class NavbarComponent {
 
   readonly onRegister = computed(() => this.currentUrl().startsWith("/register"));
 
+  /** Login/register share a pre-auth context — hide theater chrome (e.g. location) there. */
+  readonly onAuthPage = computed(
+    () => this.currentUrl().startsWith("/login") || this.currentUrl().startsWith("/register")
+  );
+
   logout(): void {
     this.auth.logout();
     this.router.navigate(["/login"]);
