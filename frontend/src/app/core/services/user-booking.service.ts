@@ -4,6 +4,7 @@ import { Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   BookingCreatePayload,
+  RefundQuote,
   SeatAvailability,
   UserBooking
 } from "../models/catalog.model";
@@ -65,5 +66,10 @@ export class UserBookingService {
 
   seatAvailability(showId: number): Observable<SeatAvailability> {
     return this.http.get<SeatAvailability>(`${this.base}/shows/${showId}/seats`);
+  }
+
+  /** Refund preview for the cancel modal — refund % and per-seat amount by time-to-show. */
+  refundQuote(id: number): Observable<RefundQuote> {
+    return this.http.get<RefundQuote>(`${this.base}/me/${id}/refund-quote`);
   }
 }

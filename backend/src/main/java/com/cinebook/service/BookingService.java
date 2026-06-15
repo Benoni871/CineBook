@@ -3,6 +3,7 @@ package com.cinebook.service;
 import com.cinebook.dto.AdminBookingResponse;
 import com.cinebook.dto.BookingRequest;
 import com.cinebook.dto.MostBookedMovieResponse;
+import com.cinebook.dto.RefundQuoteResponse;
 import com.cinebook.dto.SeatAvailabilityResponse;
 import com.cinebook.dto.UserBookingResponse;
 import com.cinebook.entity.Booking;
@@ -27,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -340,6 +343,10 @@ public class BookingService {
     /** Common cancel mechanics — set status, refund total, bump Show.availableSeats. */
     private void applyCancellation(Booking booking, List<BookingSeat> seats) {
         LocalDateTime now = LocalDateTime.now();
+        Show show = showRepository.findById(booking.getShowId()).orElse(null);
+        // Time-based refund policy — % of the cancelled seats' value, by hours-to-show.
+        int refundPercent = refundPercentFor(show == null ? null : show.getShowTime(), now);
+
         BigDecimal refundDelta = BigDecimal.ZERO;
         for (BookingSeat seat : seats) {
             seat.setStatus(SeatStatus.CANCELLED);
@@ -349,10 +356,11 @@ public class BookingService {
                 refundDelta = refundDelta.add(seat.getPrice());
             }
         }
-        // Refund-only price is the subtotal portion; tax on cancelled seats is also refunded.
-        BigDecimal refundWithTax = refundDelta
-                .add(refundDelta.multiply(TAX_RATE))
-                .setScale(2, RoundingMode.HALF_UP);
+        // Cancelled seats' price + 18% tax, then scaled down by the refund policy %.
+        BigDecimal grossRefund = refundDelta.add(refundDelta.multiply(TAX_RATE));
+        BigDecimal refundWithTax = grossRefund
+                .multiply(BigDecimal.valueOf(refundPercent))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal currentRefund = booking.getRefundAmount() == null
                 ? BigDecimal.ZERO : booking.getRefundAmount();
         booking.setRefundAmount(currentRefund.add(refundWithTax).setScale(2, RoundingMode.HALF_UP));
@@ -368,13 +376,69 @@ public class BookingService {
         }
         bookingRepository.save(booking);
 
-        // Return cancelled seats to the show's pool.
-        showRepository.findById(booking.getShowId()).ifPresent(show -> {
+        // Return cancelled seats to the show's pool (reusing the show fetched above).
+        if (show != null) {
             int avail = show.getAvailableSeats() == null ? 0 : show.getAvailableSeats();
             int cap = show.getTotalSeats() == null ? avail + seats.size() : show.getTotalSeats();
             show.setAvailableSeats(Math.min(avail + seats.size(), cap));
             showRepository.save(show);
-        });
+        }
+    }
+
+    /**
+     * Refund percentage for a cancellation made now, by time remaining until the show:
+     * &ge;24h &rarr; 100, 12&ndash;24h &rarr; 80, 2&ndash;12h &rarr; 50, &lt;2h (or past) &rarr; 0.
+     */
+    private int refundPercentFor(LocalDateTime showTime, LocalDateTime now) {
+        if (showTime == null) {
+            return 0;
+        }
+        long minutes = Duration.between(now, showTime).toMinutes();
+        if (minutes >= 24 * 60) return 100;
+        if (minutes >= 12 * 60) return 80;
+        if (minutes >= 2 * 60) return 50;
+        return 0;
+    }
+
+    private String refundPolicyMessage(int refundPercent) {
+        return switch (refundPercent) {
+            case 100 -> "Full refund — you're cancelling 24+ hours before showtime.";
+            case 80 -> "80% refund — cancelling between 12 and 24 hours before showtime.";
+            case 50 -> "50% refund — cancelling between 2 and 12 hours before showtime.";
+            default -> "No refund — cancellations within 2 hours of showtime are non-refundable.";
+        };
+    }
+
+    /**
+     * Refund preview for the cancel modal. Per-seat refund = (total / seats booked)
+     * × policy %, derived from what was actually charged so it stays correct even if
+     * the show's ticket price later changes.
+     */
+    @Transactional(readOnly = true)
+    public RefundQuoteResponse quoteRefund(Long userId, Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> ApiException.notFound("Booking not found"));
+        if (!booking.getUserId().equals(userId)) {
+            throw ApiException.forbidden("This booking does not belong to you");
+        }
+        Show show = showRepository.findById(booking.getShowId()).orElse(null);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime showTime = show == null ? null : show.getShowTime();
+        int percent = refundPercentFor(showTime, now);
+        long hoursUntilShow = showTime == null ? 0 : Duration.between(now, showTime).toHours();
+
+        BigDecimal perSeatGross = BigDecimal.ZERO;
+        if (booking.getSeatsBooked() != null && booking.getSeatsBooked() > 0
+                && booking.getTotalAmount() != null) {
+            perSeatGross = booking.getTotalAmount()
+                    .divide(BigDecimal.valueOf(booking.getSeatsBooked()), 2, RoundingMode.HALF_UP);
+        }
+        BigDecimal refundPerSeat = perSeatGross
+                .multiply(BigDecimal.valueOf(percent))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+        return new RefundQuoteResponse(percent, refundPerSeat, hoursUntilShow,
+                refundPolicyMessage(percent));
     }
 
     /** Shared enrichment: builds UserBookingResponse rows in one shot, batched by id. */
@@ -391,15 +455,45 @@ public class BookingService {
         Map<Long, Theater> theatersById = theaterRepository.findAllById(theaterIds).stream()
                 .collect(Collectors.toMap(Theater::getId, Function.identity()));
 
+        // Per-booking seat breakdown (active vs cancelled) for the interactive cancel modal.
+        List<Long> bookingIds = bookings.stream().map(Booking::getId).toList();
+        Map<Long, List<String>> activeByBooking = groupSeatLabels(bookingIds, SeatStatus.BOOKED);
+        Map<Long, List<String>> cancelledByBooking = groupSeatLabels(bookingIds, SeatStatus.CANCELLED);
+
         List<UserBookingResponse> rows = new ArrayList<>(bookings.size());
         for (Booking booking : bookings) {
             Show show = showsById.get(booking.getShowId());
             Movie movie = show == null ? null : moviesById.get(show.getMovieId());
             Theater theater = show == null ? null : theatersById.get(show.getTheaterId());
             boolean hasReview = reviewRepository.findByBookingId(booking.getId()).isPresent();
-            rows.add(toUserResponse(booking, show, movie, theater, hasReview));
+            UserBookingResponse row = toUserResponse(booking, show, movie, theater, hasReview);
+            row.setActiveSeats(activeByBooking.getOrDefault(booking.getId(), List.of()));
+            row.setCancelledSeats(cancelledByBooking.getOrDefault(booking.getId(), List.of()));
+            rows.add(row);
         }
         return rows;
+    }
+
+    /** Seat labels (naturally sorted) for the given bookings in a given status, keyed by booking id. */
+    private Map<Long, List<String>> groupSeatLabels(List<Long> bookingIds, SeatStatus status) {
+        return bookingSeatRepository.findByBookingIdInAndStatus(bookingIds, status).stream()
+                .collect(Collectors.groupingBy(
+                        BookingSeat::getBookingId,
+                        Collectors.collectingAndThen(
+                                Collectors.mapping(BookingSeat::getSeatLabel, Collectors.toList()),
+                                BookingService::sortSeatLabels)));
+    }
+
+    /** Sort "A1, A2, A10, B1" by row letter then numeric seat — not lexically. */
+    private static List<String> sortSeatLabels(List<String> labels) {
+        return labels.stream()
+                .sorted(Comparator
+                        .comparing((String s) -> s.replaceAll("[0-9]", ""))
+                        .thenComparingInt(s -> {
+                            String digits = s.replaceAll("[^0-9]", "");
+                            return digits.isEmpty() ? 0 : Integer.parseInt(digits);
+                        }))
+                .toList();
     }
 
     private UserBookingResponse toUserResponse(Booking booking, Show show, Movie movie,

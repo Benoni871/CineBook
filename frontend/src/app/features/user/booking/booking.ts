@@ -72,6 +72,9 @@ export class BookingComponent implements OnInit {
   readonly interest = signal<MovieInterestStatus | null>(null);
   readonly interestSubmitting = signal(false);
 
+  /** Show to auto-select once shows load — set from a `?showId=` query param (e.g. from a theater page). */
+  private pendingShowId: number | null = null;
+
   readonly rows = computed(() => {
     const show = this.selectedShow();
     if (!show) return [] as { label: string; seats: { label: string; booked: boolean; picked: boolean }[] }[];
@@ -106,6 +109,9 @@ export class BookingComponent implements OnInit {
   readonly total = computed(() => Math.round((this.subtotal() + this.tax()) * 100) / 100);
 
   ngOnInit(): void {
+    const showIdParam = Number(this.route.snapshot.queryParamMap.get("showId"));
+    this.pendingShowId = showIdParam > 0 ? showIdParam : null;
+
     this.route.paramMap
       .pipe(
         tap(() => {
@@ -131,7 +137,15 @@ export class BookingComponent implements OnInit {
 
   private loadShows(movieId: number): void {
     this.showService.listForMovie(movieId).subscribe({
-      next: (shows) => this.shows.set(shows),
+      next: (shows) => {
+        this.shows.set(shows);
+        // Jump straight to seat selection when arriving with a pre-selected show.
+        if (this.pendingShowId != null) {
+          const match = shows.find((s) => s.id === this.pendingShowId);
+          if (match) this.pickShow(match);
+          this.pendingShowId = null;
+        }
+      },
       error: (err) => {
         console.error("Failed to load shows", err);
         this.error.set("Could not load showtimes. Try again later.");

@@ -72,6 +72,26 @@ public class ShowService {
                 .toList();
     }
 
+    /**
+     * Upcoming (future) shows for one theater, soonest first. Drives the theater
+     * detail page; not theater-scoped to the caller because users browse every venue.
+     */
+    @Transactional(readOnly = true)
+    public List<PublicShowResponse> listUpcomingForTheater(Long theaterId) {
+        LocalDateTime now = LocalDateTime.now();
+        List<Show> shows = showRepository.findByTheaterIdAndDeletedFalse(theaterId).stream()
+                .filter(show -> show.getShowTime() != null && show.getShowTime().isAfter(now))
+                .sorted(Comparator.comparing(Show::getShowTime))
+                .toList();
+        if (shows.isEmpty()) {
+            return List.of();
+        }
+        Theater theater = theaterRepository.findById(theaterId).orElse(null);
+        return shows.stream()
+                .map(show -> toPublicResponse(show, theater))
+                .toList();
+    }
+
     private PublicShowResponse toPublicResponse(Show show, Theater theater) {
         PublicShowResponse dto = new PublicShowResponse();
         dto.setId(show.getId());

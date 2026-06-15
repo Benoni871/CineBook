@@ -2,6 +2,7 @@ package com.cinebook.controller;
 
 import com.cinebook.dto.BookingRequest;
 import com.cinebook.dto.CancelSeatsRequest;
+import com.cinebook.dto.RefundQuoteResponse;
 import com.cinebook.dto.SeatAvailabilityResponse;
 import com.cinebook.dto.UserBookingResponse;
 import com.cinebook.security.AuthPrincipal;
@@ -69,6 +70,14 @@ public class BookingController {
             @AuthenticationPrincipal AuthPrincipal principal) {
         return ResponseEntity.ok(
                 bookingService.cancelSeats(principal.userId(), id, request.getSeatLabels()));
+    }
+
+    /** Refund preview for the cancel modal — refund % and per-seat amount, by time-to-show. */
+    @GetMapping("/me/{id}/refund-quote")
+    public ResponseEntity<RefundQuoteResponse> refundQuote(
+            @PathVariable Long id,
+            @AuthenticationPrincipal AuthPrincipal principal) {
+        return ResponseEntity.ok(bookingService.quoteRefund(principal.userId(), id));
     }
 
     /** Seat picker snapshot — total seats + already-BOOKED labels for a show. */

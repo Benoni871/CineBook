@@ -4,6 +4,7 @@ import com.cinebook.entity.BookingStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Flat, pre-joined row served to the user's My Bookings page. Mirrors
@@ -26,6 +27,11 @@ public class UserBookingResponse {
 
     private String seats;
     private Integer seatsBooked;
+
+    /** Seat labels still BOOKED — the cancellable set the modal lets you pick from. */
+    private List<String> activeSeats;
+    /** Seat labels already CANCELLED — rendered disabled/struck-through in the modal. */
+    private List<String> cancelledSeats;
 
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
@@ -67,6 +73,12 @@ public class UserBookingResponse {
 
     public Integer getSeatsBooked() { return seatsBooked; }
     public void setSeatsBooked(Integer seatsBooked) { this.seatsBooked = seatsBooked; }
+
+    public List<String> getActiveSeats() { return activeSeats; }
+    public void setActiveSeats(List<String> activeSeats) { this.activeSeats = activeSeats; }
+
+    public List<String> getCancelledSeats() { return cancelledSeats; }
+    public void setCancelledSeats(List<String> cancelledSeats) { this.cancelledSeats = cancelledSeats; }
 
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
