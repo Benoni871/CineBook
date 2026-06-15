@@ -61,6 +61,14 @@ export const routes: Routes = [
       import("./features/user/theaters/theaters").then((m) => m.TheatersComponent)
   },
   {
+    path: "theaters/:id",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("./features/user/theater-detail/theater-detail").then(
+        (m) => m.TheaterDetailComponent
+      )
+  },
+  {
     path: "my-bookings",
     canActivate: [authGuard],
     loadComponent: () =>

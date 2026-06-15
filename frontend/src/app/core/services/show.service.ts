@@ -79,4 +79,12 @@ export class ShowService {
   listForMovie(movieId: number): Observable<PublicShow[]> {
     return this.http.get<PublicShow[]>(this.base, { params: { movieId } });
   }
+
+  /**
+   * Public upcoming shows for one theater, theater-enriched. Used by the theater
+   * detail page; does NOT mutate the admin-side `shows` signal.
+   */
+  listForTheater(theaterId: number): Observable<PublicShow[]> {
+    return this.http.get<PublicShow[]>(this.base, { params: { theaterId } });
+  }
 }

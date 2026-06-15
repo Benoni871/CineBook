@@ -142,6 +142,10 @@ export interface UserBooking {
   theaterLocation: string | null;
   seats: string;
   seatsBooked: number;
+  /** Seat labels still active (cancellable) — drives the interactive cancel modal. */
+  activeSeats: string[];
+  /** Seat labels already cancelled — shown disabled/struck-through in the modal. */
+  cancelledSeats: string[];
   subtotal: number;
   taxAmount: number;
   totalAmount: number;
@@ -150,6 +154,17 @@ export interface UserBooking {
   bookingDate: string;
   cancelledAt: string | null;
   hasReview: boolean;
+}
+
+/**
+ * Pre-cancel refund preview from `/api/bookings/me/{id}/refund-quote`. The modal
+ * multiplies `refundPerSeat` by the number of seats selected for a live estimate.
+ */
+export interface RefundQuote {
+  refundPercent: number;
+  refundPerSeat: number;
+  hoursUntilShow: number;
+  message: string;
 }
 
 export interface BookingCreatePayload {

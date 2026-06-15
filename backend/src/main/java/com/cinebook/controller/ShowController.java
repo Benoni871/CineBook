@@ -45,6 +45,16 @@ public class ShowController {
         return ResponseEntity.ok(showService.listUpcomingForMovie(movieId));
     }
 
+    /**
+     * Public shows-by-theater listing for the theater detail page. Returns upcoming
+     * shows for a single theater, soonest first. Disambiguated from the admin
+     * {@link #list} above by the required {@code theaterId} query parameter.
+     */
+    @GetMapping(params = "theaterId")
+    public ResponseEntity<List<PublicShowResponse>> listByTheater(@RequestParam Long theaterId) {
+        return ResponseEntity.ok(showService.listUpcomingForTheater(theaterId));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Show> create(

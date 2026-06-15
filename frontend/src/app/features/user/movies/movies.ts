@@ -27,6 +27,7 @@ import { ReviewService } from "../../../core/services/review.service";
 import { ShowService } from "../../../core/services/show.service";
 import { TheaterService } from "../../../core/services/theater.service";
 import { CarouselComponent } from "../../../shared/carousel/carousel";
+import { TomatoFill, TomatoIconComponent } from "../../../shared/tomato-icon/tomato-icon";
 import { TrailerModalComponent } from "../../../shared/trailer-modal/trailer-modal";
 
 type Filter = string;
@@ -43,6 +44,7 @@ type Filter = string;
   imports: [
     FormsModule,
     CarouselComponent,
+    TomatoIconComponent,
     TrailerModalComponent,
     LucideArrowRight,
     LucideClock,
@@ -202,6 +204,15 @@ export class MoviesComponent implements OnInit {
 
   ratingFor(movieId: number): MovieRating | null {
     return this.ratings().get(movieId) ?? null;
+  }
+
+  /** Five tomato fill-states for an average rating (e.g. 3.4 → full,full,full,empty,empty). */
+  tomatoFills(average: number): TomatoFill[] {
+    return [1, 2, 3, 4, 5].map((i) => {
+      if (average >= i) return "full";
+      if (average >= i - 0.5) return "half";
+      return "empty";
+    });
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────

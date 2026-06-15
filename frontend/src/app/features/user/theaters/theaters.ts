@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { LucideMapPin, LucideSearch, LucideStore } from "@lucide/angular";
+import { RouterLink } from "@angular/router";
+import { LucideChevronRight, LucideMapPin, LucideSearch, LucideStore } from "@lucide/angular";
 import { Theater } from "../../../core/models/catalog.model";
 import { TheaterService } from "../../../core/services/theater.service";
 
@@ -11,7 +12,7 @@ import { TheaterService } from "../../../core/services/theater.service";
 @Component({
   selector: "app-theaters",
   standalone: true,
-  imports: [FormsModule, LucideMapPin, LucideSearch, LucideStore],
+  imports: [FormsModule, RouterLink, LucideChevronRight, LucideMapPin, LucideSearch, LucideStore],
   templateUrl: "./theaters.html",
   styleUrl: "./theaters.css"
 })
