@@ -8,5 +8,10 @@ export const adminGuard: CanActivateFn = () => {
   if (auth.isAdmin()) {
     return true;
   }
-  return router.createUrlTree([auth.isLoggedIn() ? "/" : "/login"]);
+  // Admin-only console: a signed-in non-admin has no destination, so sign them
+  // out before bouncing everyone here to the login screen.
+  if (auth.isLoggedIn()) {
+    auth.logout();
+  }
+  return router.createUrlTree(["/login"]);
 };

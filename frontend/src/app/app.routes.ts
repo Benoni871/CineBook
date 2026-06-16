@@ -42,10 +42,8 @@ export const routes: Routes = [
     loadComponent: () =>
       import("./features/admin/analytics/analytics").then((m) => m.AnalyticsComponent)
   },
-  {
-    path: "",
-    canActivate: [authGuard],
-    loadComponent: () => import("./features/user/home/home").then((m) => m.HomeComponent)
-  },
-  { path: "**", redirectTo: "" }
+  // Admin-only console: the landing page is the movie manager. The admin guard on
+  // that route handles anonymous/non-admin callers (sent to /login).
+  { path: "", redirectTo: "manage-movies", pathMatch: "full" },
+  { path: "**", redirectTo: "manage-movies" }
 ];

@@ -89,7 +89,16 @@ export class RegisterComponent {
         : this.auth.register({ username: this.username, password: this.password });
 
     request$.subscribe({
-      next: () => this.router.navigate([this.auth.isAdmin() ? "/manage-movies" : "/"]),
+      next: () => {
+        // Admin-only console — only theater-owner accounts can enter.
+        if (this.auth.isAdmin()) {
+          this.router.navigate(["/manage-movies"]);
+        } else {
+          this.auth.logout();
+          this.error.set("This console is for theater admins only. Please register as a theater owner.");
+          this.loading.set(false);
+        }
+      },
       error: (err) => {
         this.error.set(err?.error?.message ?? "Registration failed");
         this.loading.set(false);

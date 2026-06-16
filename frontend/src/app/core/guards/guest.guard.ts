@@ -8,5 +8,6 @@ export const guestGuard: CanActivateFn = () => {
   if (!auth.isLoggedIn()) {
     return true;
   }
-  return router.createUrlTree([auth.isAdmin() ? "/manage-movies" : "/"]);
+  // Already signed in — keep them out of the auth pages and on the admin console.
+  return router.createUrlTree(["/manage-movies"]);
 };

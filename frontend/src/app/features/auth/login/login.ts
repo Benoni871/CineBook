@@ -57,7 +57,16 @@ export class LoginComponent {
     this.loading.set(true);
     this.error.set(null);
     this.auth.login({ username: this.username, password: this.password }).subscribe({
-      next: () => this.router.navigate([this.auth.isAdmin() ? "/manage-movies" : "/"]),
+      next: () => {
+        // Admin-only console — non-admin accounts have no destination here.
+        if (this.auth.isAdmin()) {
+          this.router.navigate(["/manage-movies"]);
+        } else {
+          this.auth.logout();
+          this.error.set("This console is for theater admins only.");
+          this.loading.set(false);
+        }
+      },
       error: (err) => {
         this.error.set(err?.error?.message ?? "Login failed");
         this.loading.set(false);
