@@ -8,6 +8,7 @@ import com.cinebook.security.AuthPrincipal;
 import com.cinebook.service.StripePaymentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class PaymentController {
     }
 
     /** Reserve seats and open a Stripe Checkout Session; returns the URL to redirect to. */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/checkout")
     public ResponseEntity<CheckoutResponse> checkout(
             @Valid @RequestBody BookingRequest request,
@@ -35,6 +37,7 @@ public class PaymentController {
     }
 
     /** Finalize a booking after the user returns from Stripe (server verifies the payment). */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/confirm")
     public ResponseEntity<UserBookingResponse> confirm(
             @Valid @RequestBody SessionRequest request,
@@ -44,6 +47,7 @@ public class PaymentController {
     }
 
     /** Release the held seats when the user backs out of Checkout. */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/cancel-hold")
     public ResponseEntity<Void> cancelHold(
             @Valid @RequestBody SessionRequest request,
