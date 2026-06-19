@@ -1,15 +1,26 @@
 package com.cinebook.repository;
 
 import com.cinebook.entity.Booking;
+import com.cinebook.entity.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserIdOrderByBookingDateDesc(Long userId);
     List<Booking> findByShowId(Long showId);
+    boolean existsByShowIdAndStatusIn(Long showId, Collection<BookingStatus> statuses);
+
+    /** Locate a booking by its Stripe Checkout Session id — drives idempotent finalize/release. */
+    Optional<Booking> findByStripeSessionId(String stripeSessionId);
+
+    /** Abandoned holds: PENDING_PAYMENT bookings created before the given cutoff (reaper). */
+    List<Booking> findByStatusAndBookingDateBefore(BookingStatus status, LocalDateTime cutoff);
 
     // Every booking that belongs to one of the theater's shows, newest first.
     // Uses an explicit entity join on the plain FK column since Booking/Show have no @ManyToOne mapping.

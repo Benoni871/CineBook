@@ -10,66 +10,9 @@
   @apply bg-tomato-500 text-white shadow-sm hover:text-white;
 }
 
-/* ─── Rich movie filter (page-level dropdown) ─────────────────────────────────
-   A custom button-driven combobox: the native <select> can't host poster
-   thumbnails per option, so we hand-roll the trigger + menu using existing
-   tokens (.card, tomato palette) so it still looks native to the app. */
-.filter-trigger {
-  @apply inline-flex h-14 min-w-[16rem] max-w-[20rem] items-center gap-3 rounded-xl border border-ink-700 bg-ink-900 px-3 pr-2 text-left shadow-sm transition-colors hover:border-ink-600 hover:bg-ink-800 focus:border-tomato-500 focus:outline-none focus:ring-2 focus:ring-tomato-500/30;
-}
-.filter-trigger.is-open {
-  @apply border-tomato-500 ring-2 ring-tomato-500/30;
-}
-.filter-trigger-poster {
-  @apply aspect-[2/3] h-10 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
-}
-.filter-trigger-icon {
-  @apply grid h-10 w-10 flex-shrink-0 place-items-center rounded-md bg-tomato-500/10 text-tomato-600;
-}
-.filter-trigger-text {
-  @apply flex min-w-0 flex-1 flex-col;
-}
-.filter-trigger-title {
-  @apply truncate text-sm font-semibold text-gray-900;
-}
-.filter-trigger-meta {
-  @apply truncate text-[0.7rem] font-medium text-gray-500;
-}
-.filter-trigger-clear {
-  @apply grid h-7 w-7 flex-shrink-0 place-items-center rounded-full text-gray-500 transition-colors hover:bg-ink-800 hover:text-tomato-600;
-}
-.filter-trigger-chevron {
-  @apply flex-shrink-0 text-gray-500 transition-transform duration-200;
-}
-.filter-trigger-chevron.is-flipped {
-  @apply rotate-180 text-tomato-500;
-}
-
-.filter-menu {
-  @apply absolute right-0 top-full z-30 mt-2 flex max-h-[22rem] w-80 flex-col gap-0.5 overflow-y-auto p-1.5 shadow-xl ring-1 ring-black/5;
-}
-
-.filter-menu-row {
-  @apply flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-ink-800;
-}
-.filter-menu-row.is-active {
-  @apply bg-tomato-500/10;
-}
-.filter-menu-poster {
-  @apply aspect-[2/3] h-10 flex-shrink-0 rounded-md object-cover ring-1 ring-black/10;
-}
-.filter-menu-text {
-  @apply flex min-w-0 flex-1 flex-col;
-}
-.filter-menu-title {
-  @apply truncate text-sm font-semibold text-gray-900;
-}
-.filter-menu-row.is-active .filter-menu-title {
-  @apply text-tomato-600;
-}
-.filter-menu-meta {
-  @apply truncate text-[0.7rem] font-medium text-gray-500;
-}
+/* Rich movie filter classes (.filter-trigger, .filter-menu, …) were promoted
+   to styles.css so the user navbar's location picker can reuse them. Keeping
+   only the page-specific bits here. */
 
 /* Status badges — reuses the base shape and extends with three booking-specific tones. */
 .status-badge {
